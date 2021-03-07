@@ -1,0 +1,48 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+
+################################################################################
+# Project Settings
+################################################################################
+# Name of project. By default, will be used to configure the VM name and
+# project folder.
+$project_name = "hounds-of-hell"
+
+
+################################################################################
+# Project Dependencies
+################################################################################
+
+# Custom Debian packages installed with apt-get.
+$server_apt_packages = "\
+  avahi-daemon \
+  git \
+"
+
+# Custom Debian packages installed with apt-get.
+$client_apt_packages = "\
+  avahi-daemon \
+  git \
+  nfs-common \
+"
+
+################################################################################
+# Project Provisioning Scripts
+################################################################################
+
+# Configure project-specific settings.
+$configure_server_settings = <<EOT
+EOT
+
+# Configure the machine and installed tools:
+$configure_server_tools = <<EOT
+EOT
+
+# Configure project-specific settings.
+$configure_client_settings = <<EOT
+EOT
+
+# Configure the machine and installed tools:
+$configure_client_tools = <<EOT
+EOT

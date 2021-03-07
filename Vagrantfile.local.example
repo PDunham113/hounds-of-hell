@@ -1,0 +1,91 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# In Windows/MinGW we need to use NUL instead of /dev/null. This does not apply
+# in Cygwin (where 'host_os' below would return as 'cygwin').
+require 'rbconfig'
+is_windows = (RbConfig::CONFIG['host_os'] =~ /mswin|mingw/)
+if is_windows
+  devnull = 'NUL'
+else
+  devnull = '/dev/null'
+end
+
+################################################################################
+# Local Configuration Parameters
+################################################################################
+
+# Configure the VM name within the provider. VM instances are identified using
+# their unique names.
+$vm_name = $project_name
+
+# Specify the number of CPU cores to allocate to the VM.
+$num_cpus = 2
+
+# Specify the amount of RAM to allocate to the VM (in MB).
+$memory_size = 2048
+
+# Specify the path where your public and private SSH key files are located.
+# Defaults to '~/.ssh'.
+$ssh_key_location = "#{ENV['HOME']}/.ssh"
+
+# Specify the name of your SSH public key file. If unspecified, the public key
+# file will not be copied.
+$ssh_public_key = ""
+
+# Specify the desired Git user name to be used by the VM. Defaults to the
+# current (host) user's setting, if set.
+$git_name = `git config --get user.name 2> #{devnull}`
+
+# Specify the desired Git user email to be used by the VM. Defaults to the
+# current (host) user's setting, if set.
+$git_email = `git config --get user.email 2> #{devnull}`
+
+# A list of files to be copied to the VM during provisioning. Each file will be
+# placed at the same path as the source file. Files fom your home directory
+# will be placed in the VM's home directory.
+$files = ["#{ENV['HOME']}/.gitconfig",]
+
+
+################################################################################
+# Local Dependencies
+################################################################################
+
+# Custom Ubuntu packages installed with apt-get.
+$local_apt_packages = "\
+  vim \
+"
+
+# Custom Python packages installed with pip.
+$local_pip_packages = "\
+"
+
+
+################################################################################
+# Local Provisioning Scripts
+################################################################################
+
+# Configure machine-specific settings.
+$configure_local_settings = <<EOT
+# Local configuration code goes here.
+EOT
+
+# Configure the machine and installed tools:
+#   git: Configure the system-wide proxy settings and set the user name/email to
+#        the ones for the host machine (if available).
+$configure_local_tools = <<EOT
+echo "Configuring installed tools."
+git config --global core.filemode false
+git config --global http.proxy $http_proxy
+git config --global https.proxy $https_proxy
+if [ ! -z "#{$git_name}" ]; then
+    git config --global user.name "#{$git_name}"
+else
+    echo "Warning: Git user name not configured." >&2
+fi
+if [ ! -z "#{$git_email}" ]; then
+    git config --global user.email "#{$git_email}"
+else
+    echo "Warning: Git user email not configured." >&2
+fi
+# Tool configurations go here.
+EOT
