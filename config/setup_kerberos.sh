@@ -6,7 +6,7 @@ set -e
 # as an argument. The realm name is derived from the DNS domain name, unless the
 # REALM variable is set.
 #
-# The MASTER_PASS variable must be set - this is used for the Kerberos master
+# The PRIMARY_PW variable must be set - this is used for the Kerberos primary
 # password
 #
 # Unless the ROLE variable is explicitly set, the host's role will be determined
@@ -34,7 +34,7 @@ main () {
   # Not-so-secure secrets
   local -r ADMIN_USER="${ADMIN_USER:-vagrant/admin}"
   local -r ADMIN_PW="${ADMIN_PW:-vagrant}"
-  local -r MASTER_PASS="${MASTER_PASS:-not_a_secure_password}"
+  local -r PRIMARY_PW="${PRIMARY_PW:-not_a_secure_password}"
   # Hostname of host running script
   local -r HOST="${HOST:-$(hostname --fqdn)}"
   # Name of Kerberos realm. Typically all-uppercase version of domain.
@@ -64,7 +64,7 @@ main () {
   case "${ROLE}" in
     "PRIMARY")
       krb_config_server "${SERVERS[@]}"
-      krb_create_realm "${REALM}" "${MASTER_PASS}"
+      krb_create_realm "${REALM}" "${PRIMARY_PW}"
       kadmin.local -q "addprinc -pw ${ADMIN_PW} ${ADMIN_USER}"
       ;;
     "SECONDARY")
@@ -84,11 +84,11 @@ krb_config_client () {
 }
 
 # Create Kerberos Realm
-# First argument is realm name, second is used as master password
+# First argument is realm name, second is used as primary password
 krb_create_realm () {
-  local -r REALM="$1"; local -r MASTER_PASS="$2"
+  local -r REALM="$1"; local -r PRIMARY_PW="$2"
 
-  kdb5_util create -r "${REALM}" -P "${MASTER_PASS}" -s
+  kdb5_util create -r "${REALM}" -P "${PRIMARY_PW}" -s
   systemctl start krb5-kdc || true
   systemctl start krb5-admin-server || true
   if [ ! -r /etc/krb5kdc/kadm5.acl ] ; then
