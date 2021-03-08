@@ -7,8 +7,8 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 readonly SCRIPT_DIR
 source "${SCRIPT_DIR}/util.sh"
 
-readonly ADMIN="${ADMIN:-vagrant/admin}"
-readonly ADMIN_P="${ADMIN_P:-vagrant}"
+readonly ADMIN_USER="${ADMIN_USER:-vagrant/admin}"
+readonly ADMIN_PW="${ADMIN_PW:-vagrant}"
 
 main () {
   # Hostname of host running script
@@ -47,16 +47,16 @@ main () {
 
 # Install nfs-common & add Kerberos principals
 # First arguiment is the realm, second argument is the host's hostname.
-# ADMIN and ADMIN_P must be set with an admin principal's credentials
+# ADMIN_USER and ADMIN_PW must be set with an admin principal's credentials
 nfs_shared_config () {
   local -r HOSTSTR="$2@$1"
 
   DEBIAN_FRONTEND=noninteractive apt-get install -y nfs-common
 
   # Add NFS & host principal, create keytab (server + client)
-  kadmin -p "${ADMIN}" -w "${ADMIN_P}" -q "addprinc -randkey host/${HOSTSTR}"
-  kadmin -p "${ADMIN}" -w "${ADMIN_P}" -q "addprinc -randkey nfs/${HOSTSTR}"
-  kadmin -p "${ADMIN}" -w "${ADMIN_P}" -q "ktadd host/${HOSTSTR} nfs/${HOSTSTR}"
+  kadmin -p "${ADMIN_USER}" -w "${ADMIN_PW}" -q "addprinc -randkey host/${HOSTSTR}"
+  kadmin -p "${ADMIN_USER}" -w "${ADMIN_PW}" -q "addprinc -randkey nfs/${HOSTSTR}"
+  kadmin -p "${ADMIN_USER}" -w "${ADMIN_PW}" -q "ktadd host/${HOSTSTR} nfs/${HOSTSTR}"
 }
 
 # Install & configure NFS server packages. Create share directory
