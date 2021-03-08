@@ -135,7 +135,12 @@ krb_install_config () {
 
   DEBIAN_FRONTEND="noninteractive" apt-get install -y krb5-config
 
+  # Set up Kerberos config file
   cp "${SCRIPT_DIR}/files/etc_krb5.conf" "${KRB_CFG_FILE}"
+  sed -i "s~#{ADMIN_SERVER}~${SERVERS[0]}~g" "${KRB_CFG_FILE}"
+  sed -i "s~#{DNSDOMAIN}~$(dnsdomainname)~g" "${KRB_CFG_FILE}"
+  sed -i "s~#{KDC_LIST}~$(printf '\t\tkdc = %s\n' ${SERVERS[@]})~g" "${KRB_CFG_FILE}"
+  sed -i "s~#{REALM}~${REALM}~g" "${KRB_CFG_FILE}"
 }
 
 main "$@"
