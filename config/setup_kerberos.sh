@@ -107,7 +107,7 @@ EOF
 # Install Kerberos for a server
 # Arguments are a whitespace-separated list of Kerberos servers
 krb_config_server () {
-  local -r SERVERS=("$@")
+  local -r _SERVERS=("$@")
   util_set_selection "krb5-admin-server krb5-admin-server/newrealm note"
   util_set_selection "krb5-kdc krb5-kdc/purge_data_too boolean false"
   util_set_selection "krb5-kdc krb5-kdc/debconf boolean true"
@@ -118,7 +118,7 @@ krb_config_server () {
   krb5-kpropd
 
   # Create a list of all KDCs in realm for kpropd
-  printf "%s\n" "${SERVERS[@]}" > /etc/krb5kdc/kpropd.acl
+  printf "%s\n" "${_SERVERS[@]}" > /etc/krb5kdc/kpropd.acl
 }
 
 # Install Kerberos configuration package
