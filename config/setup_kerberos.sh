@@ -26,7 +26,8 @@ set -e
 # Direction from:
 # -   https://help.ubuntu.com/lts/serverguide/kerberos.html
 # -   https://web.mit.edu/kerberos/krb5-1.12/doc/admin/install.html
-readonly SCRIPT_DIR=$(cd `dirname $0` && pwd)
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+readonly SCRIPT_DIR
 source "${SCRIPT_DIR}/util.sh"
 
 main () {
@@ -37,7 +38,7 @@ main () {
   # Hostname of host running script
   local -r HOST="${HOST:-$(hostname --fqdn)}"
   # Name of Kerberos realm. Typically all-uppercase version of domain.
-  local -r REALM="${REALM:-$(dnsdomainname | tr [:lower:] [:upper:])}"
+  local -r REALM="${REALM:-$(dnsdomainname | tr '[:lower:]' '[:upper:]')}"
   echo "Configuring for realm ${REALM}"
   # List of all Kerberos servers. First is the admin server, all others are
   # secondary.
@@ -46,9 +47,9 @@ main () {
   # If the host's role has not been explicitly specified, determine from
   # hostname.
   if [[ ! ("${ROLE}" && "PRIMARY SECONDARY CLIENT" == *${ROLE}*) ]]; then
-    if [[ "${SERVERS[0]}" == ${HOST} ]]; then
+    if [[ "${SERVERS[0]}" == "${HOST}" ]]; then
       local -r ROLE="PRIMARY"
-    elif [[ "${SERVERS[@]}" == *${HOST}* ]]; then
+    elif [[ "${SERVERS[*]}" == *${HOST}* ]]; then
       local -r ROLE="SECONDARY"
     else
       local -r ROLE="CLIENT"
@@ -106,6 +107,7 @@ EOF
 # Install Kerberos for a server
 # Arguments are a whitespace-separated list of Kerberos servers
 krb_config_server () {
+  local -r SERVERS=("$@")
   util_set_selection "krb5-admin-server krb5-admin-server/newrealm note"
   util_set_selection "krb5-kdc krb5-kdc/purge_data_too boolean false"
   util_set_selection "krb5-kdc krb5-kdc/debconf boolean true"
@@ -116,7 +118,7 @@ krb_config_server () {
   krb5-kpropd
 
   # Create a list of all KDCs in realm for kpropd
-  printf "%s\n" "$@" > /etc/krb5kdc/kpropd.acl
+  printf "%s\n" "${SERVERS[@]}" > /etc/krb5kdc/kpropd.acl
 }
 
 # Install Kerberos configuration package
@@ -128,7 +130,7 @@ krb_install_config () {
 
   util_set_selection "krb5-config krb5-config/add_servers_realm string ${REALM}"
   util_set_selection "krb5-config krb5-config/admin_server string ${SERVERS[0]}"
-  util_set_selection "krb5-config krb5-config/kerberos_servers string ${SERVERS[@]}"
+  util_set_selection "krb5-config krb5-config/kerberos_servers string ${SERVERS[*]}"
   util_set_selection "krb5-config krb5-config/read_conf boolean true"
   util_set_selection "krb5-config krb5-config/default_realm string ${REALM}"
   util_set_selection "krb5-config krb5-config/add_servers boolean true"
@@ -139,7 +141,7 @@ krb_install_config () {
   cp "${SCRIPT_DIR}/files/etc_krb5.conf" "${KRB_CFG_FILE}"
   sed -i "s~#{ADMIN_SERVER}~${SERVERS[0]}~g" "${KRB_CFG_FILE}"
   sed -i "s~#{DNSDOMAIN}~$(dnsdomainname)~g" "${KRB_CFG_FILE}"
-  sed -i "s~#{KDC_LIST}~$(printf '\t\tkdc = %s\n' ${SERVERS[@]})~g" "${KRB_CFG_FILE}"
+  sed -i "s~#{KDC_LIST}~$(printf '\t\tkdc = %s\n' "${SERVERS[@]}")~g" "${KRB_CFG_FILE}"
   sed -i "s~#{REALM}~${REALM}~g" "${KRB_CFG_FILE}"
 }
 

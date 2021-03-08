@@ -3,7 +3,8 @@ set -e
 # This script will configure a device to be a Kerberized NFS server
 #
 # It is assumed that the Kerberos environment has already been set up.
-readonly SCRIPT_DIR=$(cd `dirname $0` && pwd)
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+readonly SCRIPT_DIR
 source "${SCRIPT_DIR}/util.sh"
 
 readonly ADMIN="${ADMIN:-vagrant/admin}"
@@ -13,7 +14,7 @@ main () {
   # Hostname of host running script
   local -r HOST="${HOST:-$(hostname --fqdn)}"
   # Name of Kerberos realm. Typically all-uppercase version of domain.
-  local -r REALM="${REALM:-$(dnsdomainname | tr [:lower:] [:upper:])}"
+  local -r REALM="${REALM:-$(dnsdomainname | tr '[:lower:]' '[:upper:]')}"
   echo "Configuring for realm ${REALM}"
   # NFS server hostname
   local -r SERVER="$1"
@@ -96,4 +97,4 @@ nfs_config_client () {
   systemctl restart rpc-gssd
 }
 
-main $@
+main "$@"
